@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>风控盾 · 舆情事件</title>
+<!-- ★ 这里用的是**相对**路径（不是 /demo.css 那种绝对路径）：
+     这样这一页无论被后端挂在 /demo/ 上，还是直接双击用 file:// 打开，
+     都能找到样式和脚本 —— demo 的目标就是"所有人都打得开"。
+
+     ★ 页面自己的 js/css 就放在**同一层**：这样 url 以斜杠结尾时，
+     `./` 永远指自己这一页。成品会改名成 index.html 放进 demo/ 目录，
+     相对引用照样对得上，一个字符都不用动。 -->
+
+<!-- 页签图标：内联的 data: URI，**不是外链**（PRD 要求离线可跑、不依赖公网）。
+     这一行在每个 .html 壳里必须一模一样；不带它浏览器每开一页都去要一次
+     /favicon.ico，然后 404。 -->
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='rgb(24,144,255)' d='M12 2 4 5v6.2c0 4.8 3.3 9.1 8 10.8 4.7-1.7 8-6 8-10.8V5z'/></svg>">
+
+<link rel="stylesheet" href="./demo.css">
+</head>
+<body>
+<div id="app"></div>
+<script src="./demo.js" defer></script>
+</body>
+</html>

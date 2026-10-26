@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>风控盾 · 仿真推演</title>
+<!-- ★ 这里用的是**相对**路径（不是 /step3.js 那种绝对路径）：
+     同一份文件既被后端挂在 /demo/step3/，也要能直接双击用 file:// 打开。
+     绝对路径只有前者能开 —— 而后端没起时，双击这条路是 demo 唯一的活路。
+
+     ★ 页面自己的 js/css 就放在**同一层**（`./step3.js`，不是 `../step3.js`）：
+     这样"每一页 url 以斜杠结尾"这条规则一立住，`./` 永远指自己这一页，
+     五页可以无限往下加，谁也不用改谁。
+
+     ★ 本目录里另外两个文件（`report.html` / `echarts.min.js`）**不在这里引**：
+     报告是阶段二由 iframe 按 `./report.html` 加载的 —— 页面壳只管自己。
+     report.html 由构建从「事件\EVT-001\」拷来，只把里面那一行 ECharts
+     外链换成本层的 `./echarts.min.js`，其余逐位照抄。 -->
+
+<!-- 页签图标：内联的 data: URI，**不是外链**（PRD 要求离线可跑、不依赖公网）。
+     这一行在每个 .html 壳里必须一模一样；不带它浏览器每开一页都去要一次
+     /favicon.ico，然后 404。 -->
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='rgb(24,144,255)' d='M12 2 4 5v6.2c0 4.8 3.3 9.1 8 10.8 4.7-1.7 8-6 8-10.8V5z'/></svg>">
+
+<link rel="stylesheet" href="./step3.css">
+</head>
+<body>
+<div id="app"></div>
+<script src="./step3.js" defer></script>
+</body>
+</html>

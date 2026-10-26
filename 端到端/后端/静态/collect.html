@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>采集层 · 风控盾</title>
+<style>
+  :root{--bg:#fafafa;--surf:#fff;--ink:#111;--ink2:#3f3f3f;--muted:#6e6e6e;
+        --line:#e2e2e2;--accent:#2a78d6;--ok:#16a34a;--warn:#c2410c;--dead:#9a9a9a}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font:14px/1.65 system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif;
+       padding:0 0 60px}
+  .top{background:var(--surf);border-bottom:1px solid var(--line);padding:14px 24px;
+       display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:9}
+  .top h1{font-size:16px;font-weight:600}
+  .top h1 span{color:var(--accent)}
+  .top .sub{color:var(--muted);font-size:13px}
+  .top .right{margin-left:auto;display:flex;gap:14px;font-size:13px}
+  .top a{color:var(--accent);text-decoration:none}
+  .top a:hover{text-decoration:underline}
+  .wrap{max-width:1040px;margin:0 auto;padding:22px 24px}
+  .card{background:var(--surf);border:1px solid var(--line);border-radius:10px;
+        padding:18px 20px;margin-bottom:16px}
+  .card h2{font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px;margin-bottom:4px}
+  .card h2::before{content:"";width:3px;height:14px;background:var(--accent);border-radius:2px}
+  .hint{color:var(--muted);font-size:13px;margin-bottom:12px}
+  .modes{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}
+  .mode{border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:#fcfcfd}
+  .mode .nm{font-weight:600;font-size:13.5px;display:flex;align-items:center;gap:6px}
+  .dot{width:8px;height:8px;border-radius:50%;display:inline-block;background:var(--dead)}
+  .dot.on{background:var(--ok)}.dot.off{background:var(--dead)}.dot.todo{background:var(--warn)}
+  .mode .nt{color:var(--muted);font-size:12.5px;margin-top:3px;word-break:break-all}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  input[type=text]{flex:1;min-width:220px;border:1px solid var(--line);border-radius:8px;
+                   padding:10px 13px;font:inherit;outline:none;background:#fff}
+  input[type=text]:focus{border-color:var(--accent)}
+  select{border:1px solid var(--line);border-radius:8px;padding:10px 12px;font:inherit;background:#fff;min-width:200px}
+  button{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:10px 22px;
+         font:inherit;font-weight:600;cursor:pointer;white-space:nowrap}
+  button:hover{background:#2568bd}
+  button:disabled{opacity:.55;cursor:default}
+  button.ghost{background:#fff;color:var(--ink2);border:1px solid var(--line)}
+  button.ghost:hover{background:#f4f6f8}
+  label.ck{display:inline-flex;align-items:center;gap:6px;color:var(--ink2);font-size:13px;cursor:pointer}
+  pre{background:#111418;color:#e6edf3;border-radius:8px;padding:12px 14px;overflow:auto;
+      font:12.5px/1.55 Consolas,"Cascadia Mono",monospace;max-height:320px;white-space:pre-wrap}
+  .kv{display:grid;grid-template-columns:120px 1fr;gap:6px 14px;font-size:13.5px}
+  .kv .k{color:var(--muted)}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:12px}
+  .stat{border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:#fcfcfd}
+  .stat .v{font-size:22px;font-weight:600}
+  .stat .l{color:var(--muted);font-size:12.5px}
+  .steps{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .st{border:1px solid var(--line);border-radius:999px;padding:3px 12px;font-size:12.5px;color:var(--ink2)}
+  .st.ok{border-color:#bbf7d0;background:#f0fdf4;color:#166534}
+  .st.bad{border-color:#fecaca;background:#fef2f2;color:#991b1b}
+  .note{border-left:3px solid var(--accent);background:#f7f9fc;padding:10px 14px;
+        border-radius:0 8px 8px 0;color:var(--ink2);font-size:13px;margin-top:12px}
+  .err{border-left-color:#dc2626;background:#fef2f2;color:#991b1b}
+  a.dl{color:var(--accent)}
+  .foot{color:var(--muted);font-size:12.5px;text-align:center;margin-top:22px}
+  code{background:#f1f3f5;border-radius:4px;padding:1px 5px;font-size:12.5px}
+</style>
+</head>
+<body>
+<div class="top">
+  <h1>风控盾 · <span>采集层</span></h1>
+  <div class="sub">给一个主题 → 参数卡 → 渠道检索 → 三层过滤 → 21 字段原始帖</div>
+  <div class="right">
+    <a href="/demo/">演示界面</a><a href="/run">推演控制台</a><a href="/">运营台</a>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="card">
+    <h2>这一层现在能跑什么</h2>
+    <div class="hint">下面四项是<b>现场探测</b>出来的，不是写死的文案（<code>GET /api/collect/status</code>）。</div>
+    <div class="modes" id="modes"><div class="mode"><div class="nm"><span class="dot"></span>探测中…</div></div></div>
+    <div class="note" id="capNote">正在问后端……</div>
+  </div>
+
+  <div class="card">
+    <h2>① 给一个主题，生成事件参数卡</h2>
+    <div class="hint">参数卡定死：事件号 / 8 类事件类型 / Day0–Day1 窗口 / 主体与别名 / 检索词 / 排除词。
+      有 LLM key 时由模型生成，没 key 时出规则兜底最小卡（会明确标出来）。</div>
+    <div class="row">
+      <input type="text" id="topic" placeholder="输入事件主题，如：宠物险" value="宠物险">
+      <button id="btnCard">生成参数卡</button>
+    </div>
+    <div id="cardOut" style="display:none;margin-top:14px">
+      <div class="kv" id="cardKv"></div>
+      <div class="row" id="typeRow" style="display:none;margin-top:12px">
+        <span class="hint" style="margin:0">事件类型没定（8 类枚举）——不补的话，结构化那步会被校验挡下：</span>
+        <select id="typeSel"></select>
+        <button class="ghost" id="btnType">补齐类型</button>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <button class="ghost" id="btnUseCard">用这张卡跑一趟 →</button>
+        <span class="hint" style="margin:0" id="cardPath"></span>
+      </div>
+    </div>
+    <div class="note err" id="cardErr" style="display:none"></div>
+  </div>
+
+  <div class="card">
+    <h2>② 跑一趟：采集 → 结构化 → 舆情看板</h2>
+    <div class="hint">快照回放是本机唯一<b>零依赖、离线、可复现</b>的采集方式：它按
+      《采集规则》的三层硬过滤（窗口 / 排除词 / 必选词）从原文快照里回放，产出 21 字段 raw。</div>
+    <div class="row">
+      <select id="sample"><option value="">（先在上一步生成参数卡）</option></select>
+      <label class="ck"><input type="checkbox" id="ckStruct" checked> 接着做结构化标注</label>
+      <label class="ck"><input type="checkbox" id="ckDash" checked> 再出一份看板</label>
+      <button id="btnRun">开始采集</button>
+    </div>
+    <div class="steps" id="steps"></div>
+    <div class="stats" id="stats"></div>
+    <div id="runErr" class="note err" style="display:none"></div>
+  </div>
+
+  <div class="card">
+    <h2>③ 新事件：检索作业（开单 → 按单落档 → 收单）</h2>
+    <div class="hint">②那一套要有<b>现成的原文快照</b>才能跑。这一步补的是更上游：
+      <b>一个新主题的快照从哪儿来</b>。采集侧这一段是<b>人工 + AI 辅助检索</b>（不是平台 API 抓取），
+      所以这里不假装有爬虫 —— 而是把它做成可开单、可收单的作业：<br>
+      开单 → 照《检索作业单.md》检索并落档 → 收单校验 → 自动接上 ②那一套。
+      <b>开出来的空作业直接收单会失败</b>（H1d 快照非空），这是对的 ——
+      0 条不算收单成功。</div>
+    <div class="row">
+      <button id="btnJobOpen">开一张检索作业单</button>
+      <button class="ghost" id="btnJobCollect">收单校验 + 出 raw</button>
+      <span class="hint" style="margin:0" id="jobPath"></span>
+    </div>
+    <div class="steps" id="jobSteps"></div>
+    <div class="stats" id="jobStats"></div>
+    <div class="kv" id="jobKv" style="display:none;margin-top:12px"></div>
+    <div class="note" id="jobNote" style="display:none"></div>
+  </div>
+
+  <div class="card">
+    <h2>④ 日志</h2>
+    <div class="hint">每一步的真实输出（子进程 stdout/stderr 尾部），排查用。</div>
+    <pre id="log">（还没跑）</pre>
+  </div>
+
+  <div class="foot">
+    采集链的实现在 <code>端到端\采集层\</code>，命令行同样能用：<code>python 采集链.py --check</code><br>
+    平台登录态 / 验证码 / 各渠道解析那一层需要外部爬虫或平台接口，接口位已经留好（见采集层 README §五）。
+  </div>
+</div>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+let STATUS = null, CARD = null, CARD_PATH = null;
+
+const MODE_LABEL = {
+  snapshot: ["快照回放", "离线 · 零依赖 · 可复现"],
+  live:     ["实时抓取", "需 yuqing_collector.py"],
+  api:      ["适配器接入", "你自己写的平台 API / 爬虫"],
+  llm:      ["LLM 标注", "参数卡生成 / 情感标注"]
+};
+
+function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+async function getJSON(url, opt){
+  const r = await fetch(url, opt);
+  let j = null;
+  try { j = await r.json(); } catch(e){}
+  if (!r.ok || (j && j.ok === false)) {
+    throw new Error((j && j.error) || ("HTTP " + r.status));
+  }
+  return j;
+}
+
+async function loadStatus(){
+  try {
+    STATUS = await getJSON("/api/collect/status");
+    const md = STATUS.modes || {};
+    $("modes").innerHTML = Object.keys(MODE_LABEL).map(k => {
+      const m = md[k] || {};
+      const cls = m.ok ? "on" : (k === "live" ? "todo" : "off");
+      const tail = m.note ? esc(m.note) : "";
+      return '<div class="mode"><div class="nm"><span class="dot ' + cls + '"></span>'
+        + esc(MODE_LABEL[k][0]) + '<span style="color:#6e6e6e;font-weight:400">· ' + esc(MODE_LABEL[k][1]) + '</span></div>'
+        + '<div class="nt">' + (tail || (m.ok ? "可用" : "不可用")) + '</div></div>';
+    }).join("");
+    const live = (md.live || {});
+    $("capNote").innerHTML = live.ok
+      ? "实时抓取已接上：" + esc(live.collector)
+      : "实时抓取那一格是<b>橙的</b>，原因只有一条：真正的爬虫 <code>yuqing_collector.py</code> 没随包交付。"
+        + "接上它（或写一个适配器，见 <code>采集适配器_模板.py</code>）之后，这一格会自动变绿，页面不用改。";
+    // 样本下拉
+    const sel = $("sample"), keep = sel.value;
+    sel.innerHTML = "";
+    (STATUS.samples || []).forEach(s => {
+      const o = document.createElement("option");
+      o.value = s.dir;
+      o.textContent = s.dir + "（快照 " + s.snapshots + " 条）";
+      o.dataset.card = s.card; o.dataset.snap = s.snapshot_dir || "";
+      o.dataset.eid = s.event_id == null ? "" : s.event_id;
+      if (s.window) { o.dataset.w0 = s.window[0]; o.dataset.w1 = s.window[1]; }
+      sel.appendChild(o);
+    });
+    if (!sel.options.length) {
+      sel.innerHTML = '<option value="">（这个交付里没有样本，先在上面生成参数卡）</option>';
+    } else if (keep) { sel.value = keep; }
+  } catch (e) {
+    $("capNote").className = "note err";
+    $("capNote").textContent = "后端没连上：" + e.message + "　（命令行仍然能用：python 采集链.py --check）";
+  }
+}
+
+$("btnCard").onclick = () => genCard({});
+
+async function genCard(extra){
+  const t = $("topic").value.trim();
+  if (!t) return;
+  $("btnCard").disabled = true; $("btnCard").textContent = "生成中…";
+  $("cardErr").style.display = "none"; $("cardOut").style.display = "none";
+  try {
+    // 挑好的样本决定事件号与窗口：参数卡跟它对齐，否则回放会被"今天~明天"全过滤掉
+    const opt = $("sample").selectedOptions[0];
+    const req = Object.assign({topic: t}, extra);
+    if (opt && opt.dataset.card) {
+      if (opt.dataset.eid && !req.event_id) req.event_id = Number(opt.dataset.eid);
+      if (opt.dataset.w0) { req.start = opt.dataset.w0; req.end = opt.dataset.w1; }
+    }
+    const j = await getJSON("/api/collect/card", {
+      method: "POST", headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(req)
+    });
+    CARD = j.card; CARD_PATH = j.path;
+    const c = j.card;
+    $("cardKv").innerHTML = [
+      ["事件号", c.event_id], ["事件名", c.event_name],
+      ["事件类型", c.event_type || "（未定，需从 8 类枚举补齐）"],
+      ["采集窗口", c.start_date + " ~ " + c.end_date],
+      ["主体", c.subject],
+      ["别名", (c.aliases || []).join("、")],
+      ["检索词", (c.keywords || []).join("、")],
+      ["排除词", (c.exclude_words || []).join("、") || "（无）"],
+      ["话题", (c.topic_list || []).join("、")]
+    ].map(r => '<div class="k">' + esc(r[0]) + '</div><div>' + esc(r[1]) + "</div>").join("");
+    $("cardPath").textContent = (j.llm_used ? "由模型生成" : "规则兜底生成（没配 LLM_API_KEY）")
+      + " · " + j.path + " · " + j.cost_s + "s";
+    $("cardOut").style.display = "block";
+    $("log").textContent = j.log_tail || "";
+    // 类型没定就让人补一个（8 类枚举是 build_event 的硬校验）
+    const sel = $("typeSel");
+    sel.innerHTML = (j.event_types || []).map(x =>
+      '<option' + (x === c.event_type ? " selected" : "") + ">" + esc(x) + "</option>").join("");
+    $("typeRow").style.display = c.event_type ? "none" : "flex";
+  } catch (e) {
+    $("cardErr").style.display = "block";
+    $("cardErr").textContent = "参数卡没生成出来：" + e.message;
+  } finally {
+    $("btnCard").disabled = false; $("btnCard").textContent = "生成参数卡";
+  }
+}
+
+$("btnType").onclick = () => genCard({event_type: $("typeSel").value});
+
+$("btnUseCard").onclick = () => $("sample").scrollIntoView({behavior: "smooth", block: "center"});
+
+$("btnRun").onclick = async () => {
+  const opt = $("sample").selectedOptions[0];
+  // 参数卡一律用**服务端路径**：刚生成的那张优先，否则用所选样本自带的卡
+  const card = CARD_PATH || (opt && opt.dataset.card);
+  const snap = opt && opt.dataset.snap;
+  if (!card) { alert("先在上面生成一张参数卡，或选一个自带样本。"); return; }
+  if (!snap) { alert("这个样本没有原文快照目录，跑不起来。"); return; }
+  const body = {
+    mode: "snapshot", card: card, snapshot_dir: snap,
+    structure: $("ckStruct").checked,
+    dashboard: $("ckDash").checked
+  };
+  $("btnRun").disabled = true; $("btnRun").textContent = "采集中…";
+  $("steps").innerHTML = '<span class="st">正在跑…</span>';
+  $("stats").innerHTML = ""; $("runErr").style.display = "none";
+  const t0 = Date.now();
+  try {
+    const j = await getJSON("/api/collect/run", {
+      method: "POST", headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(body)
+    });
+    renderRun(j, (Date.now() - t0) / 1000);
+  } catch (e) {
+    $("runErr").style.display = "block";
+    $("runErr").textContent = "这一趟没跑完：" + e.message;
+    $("steps").innerHTML = '<span class="st bad">失败</span>';
+  } finally {
+    $("btnRun").disabled = false; $("btnRun").textContent = "开始采集";
+  }
+};
+
+// ── ③ 检索作业：开单 / 收单 ─────────────────────────────────────────
+let JOB = null, JOB_CARD = null;
+
+function jobCardPath(){
+  const opt = $("sample").selectedOptions[0];
+  return CARD_PATH || (opt && opt.dataset.card) || null;
+}
+
+$("btnJobOpen").onclick = async () => {
+  const card = jobCardPath();
+  if (!card) { alert("先在①生成一张参数卡，或在上面的样本下拉里选一个自带样本。"); return; }
+  $("btnJobOpen").disabled = true; $("btnJobOpen").textContent = "开单中…";
+  $("jobStats").innerHTML = ""; $("jobKv").style.display = "none";
+  $("jobNote").style.display = "none"; $("jobSteps").innerHTML = '<span class="st">正在开单…</span>';
+  try {
+    const j = await getJSON("/api/collect/job/open", {
+      method: "POST", headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({card: card})
+    });
+    JOB = j.job; JOB_CARD = card;
+    $("jobPath").textContent = "作业目录：" + JOB;
+    $("jobSteps").innerHTML = '<span class="st ok">已开单 · ' + (j.files || []).length + " 个文件 · " + j.cost_s + "s</span>";
+    $("jobKv").style.display = "grid";
+    $("jobKv").innerHTML = (j.files || []).map(f =>
+      '<div class="k">' + esc(f.replace(j.job + "\\", "").replace(j.job + "/", "")) + '</div><div class="hint" style="margin:0">已生成</div>'
+    ).join("");
+    const qs = (j.queries || []).map(q => '<span class="st">' + esc(q) + "</span>").join("");
+    $("jobStats").innerHTML = '<div class="stat" style="grid-column:1/-1"><div class="l" style="margin-bottom:6px">'
+      + "6 个渠道的建议检索串（照这个去检，明细见作业单 §3）</div><div class='steps' style='margin:0'>"
+      + (qs || '<span class="st">见作业单</span>') + "</div></div>";
+    $("jobNote").className = "note";
+    $("jobNote").style.display = "block";
+    $("jobNote").innerHTML = "照着 <code>" + esc(JOB) + "\\检索作业单.md</code> 检索、打开原文、把三件套落进同一目录"
+      + "（原文快照 / 采集清单.json / 查询记录.csv），填完再点「收单校验」。";
+    $("log").textContent = j.log_tail || "";
+  } catch (e) {
+    $("jobSteps").innerHTML = '<span class="st bad">开单失败</span>';
+    $("jobNote").className = "note err";
+    $("jobNote").style.display = "block";
+    $("jobNote").textContent = "开单没成：" + e.message;
+  } finally {
+    $("btnJobOpen").disabled = false; $("btnJobOpen").textContent = "开一张检索作业单";
+  }
+};
+
+$("btnJobCollect").onclick = async () => {
+  if (!JOB) { alert("先点上面的「开一张检索作业单」，作业目录是开单时建的。"); return; }
+  $("btnJobCollect").disabled = true; $("btnJobCollect").textContent = "收单中…";
+  $("jobNote").style.display = "none";
+  $("jobSteps").innerHTML = '<span class="st">正在校验…</span>';
+  try {
+    const j = await getJSON("/api/collect/job/collect", {
+      method: "POST", headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({job: JOB, card: JOB_CARD})
+    });
+    const fails = j.fails || [], warns = j.warns || [];
+    $("jobSteps").innerHTML = '<span class="st ' + (j.passed ? "ok" : "bad") + '">'
+      + (j.passed ? "收单通过" : "收单未通过") + " · " + j.cost_s + "s</span>"
+      + fails.map(f => '<span class="st bad">✗ ' + esc(f) + "</span>").join("")
+      + warns.map(w => '<span class="st">! ' + esc(w) + "</span>").join("");
+    $("jobStats").innerHTML = '<div class="stat"><div class="v">' + (j.passed ? "✓" : "✗")
+      + '</div><div class="l">12 项硬检查</div></div>'
+      + '<div class="stat"><div class="v">' + (j.claimed_kept == null ? "—" : j.claimed_kept)
+      + '</div><div class="l">查询记录里的 kept_count 合计</div></div>'
+      + '<div class="stat"><div class="v">' + (j.metas == null ? "—" : j.metas)
+      + '</div><div class="l">原文快照实际条数</div></div>'
+      + (j.raw ? '<div class="stat"><div class="v">' + j.raw.count
+        + '</div><div class="l">收上来的 raw（' + j.raw.fields + " 字段） <a class=\"dl\" target=\"_blank\" href=\"/api/collect/preview?path="
+        + encodeURIComponent(j.raw.path) + '">看原文 →</a></div></div>' : "");
+    $("log").textContent = j.log_tail || "";
+    $("jobNote").className = "note" + (j.passed ? "" : " err");
+    $("jobNote").style.display = "block";
+    $("jobNote").textContent = j.passed
+      ? "校验通过，raw 已经由 采集链 出在 " + j.out + "（过滤口径仍然只有那一份，没有第二套规则）。"
+      : "校验没过，按上面点名的项去补文件或改数；逐项判定落在 " + j.out + "\\收单校验.json。";
+  } catch (e) {
+    $("jobSteps").innerHTML = '<span class="st bad">收单失败</span>';
+    $("jobNote").className = "note err";
+    $("jobNote").style.display = "block";
+    $("jobNote").textContent = "收单没成：" + e.message;
+  } finally {
+    $("btnJobCollect").disabled = false; $("btnJobCollect").textContent = "收单校验 + 出 raw";
+  }
+};
+
+function renderRun(j, wall){
+  const steps = (j.steps || []).map(s =>
+    '<span class="st ' + (s.exit === 0 ? "ok" : "bad") + '">'
+    + esc(s.step) + (s.exit === 0 ? " ✓" : " ✗") + (s.cost_s != null ? " · " + s.cost_s + "s" : "")
+    + "</span>").join("");
+  $("steps").innerHTML = steps + '<span class="st">总耗时 ' + wall.toFixed(1) + "s</span>";
+
+  const raw = j.raw || {};
+  const chs = Object.keys(raw.channels || {}).map(k => k + " " + raw.channels[k]).join(" · ") || "—";
+  let html = '<div class="stat"><div class="v">' + (raw.count == null ? "—" : raw.count) + '</div><div class="l">保留的原始帖（' + (raw.fields || 0) + " 字段）</div></div>";
+  html += '<div class="stat"><div class="v" style="font-size:15px;line-height:1.5">' + esc(chs) + '</div><div class="l">渠道分布</div></div>';
+  if (j.processed) {
+    html += '<div class="stat"><div class="v">' + j.processed.count + '</div><div class="l">标准事件包（' + j.processed.fields + " 字段 · " + (j.processed.labeled_by === "llm" ? "LLM 标注" : "规则兜底") + "）</div></div>";
+  }
+  if (j.dashboard) {
+    html += '<div class="stat"><div class="v" style="font-size:15px"><a class="dl" target="_blank" href="/api/collect/preview?path='
+      + encodeURIComponent(j.dashboard.path) + '">打开看板 →</a></div><div class="l">' + j.dashboard.size_kb + " KB</div></div>";
+  }
+  $("stats").innerHTML = html;
+  $("log").textContent = j.log_tail || "（无输出）";
+}
+
+loadStatus();
+</script>
+</body>
+</html>
