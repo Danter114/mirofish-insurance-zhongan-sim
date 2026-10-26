@@ -1,0 +1,158 @@
+{
+ "version": "1.0",
+ "built_at": "2026-10-05",
+ "subject": "众安在线财产保险股份有限公司",
+ "subject_events_total": 32,
+ "event_id": "EVT-001",
+ "issue_history": [
+  {
+   "leaf": "宠物险争议",
+   "heat": 0.351,
+   "hist_events": 4,
+   "hist_factor": 0.8,
+   "heat_hist": 0.491
+  },
+  {
+   "leaf": "广告内容低俗",
+   "heat": 0.305,
+   "hist_events": 0,
+   "hist_factor": 0,
+   "heat_hist": 0.305
+  },
+  {
+   "leaf": "退保损失",
+   "heat": 0.222,
+   "hist_events": 3,
+   "hist_factor": 0.6,
+   "heat_hist": 0.289
+  },
+  {
+   "leaf": "性别与价值观争议",
+   "heat": 0.207,
+   "hist_events": 0,
+   "hist_factor": 0,
+   "heat_hist": 0.207
+  }
+ ],
+ "issue_combination": {
+  "key": "宠物险争议 + 广告内容低俗 + 性别与价值观争议 + 退保损失",
+  "historical_cooccurrence": 0,
+  "is_novel": true
+ },
+ "novelty": 1,
+ "subject_profile": [
+  {
+   "issue": "拒赔",
+   "events": 11
+  },
+  {
+   "issue": "客服态度",
+   "events": 8
+  },
+  {
+   "issue": "条款晦涩",
+   "events": 6
+  },
+  {
+   "issue": "宠物险争议",
+   "events": 5
+  },
+  {
+   "issue": "车险争议",
+   "events": 5
+  },
+  {
+   "issue": "开庭公告与被诉",
+   "events": 4
+  },
+  {
+   "issue": "既往症认定",
+   "events": 4
+  },
+  {
+   "issue": "自动扣款",
+   "events": 4
+  },
+  {
+   "issue": "退保损失",
+   "events": 4
+  },
+  {
+   "issue": "销售误导",
+   "events": 4
+  },
+  {
+   "issue": "续保被拒",
+   "events": 3
+  },
+  {
+   "issue": "App功能与故障",
+   "events": 2
+  },
+  {
+   "issue": "股东变动",
+   "events": 2
+  },
+  {
+   "issue": "注册资本变更",
+   "events": 2
+  },
+  {
+   "issue": "理赔拖延",
+   "events": 2
+  },
+  {
+   "issue": "健康告知争议",
+   "events": 2
+  },
+  {
+   "issue": "停售下架",
+   "events": 1
+  },
+  {
+   "issue": "过度收集",
+   "events": 1
+  },
+  {
+   "issue": "高管任职变更",
+   "events": 1
+  },
+  {
+   "issue": "广告内容低俗",
+   "events": 1
+  },
+  {
+   "issue": "性别与价值观争议",
+   "events": 1
+  },
+  {
+   "issue": "理赔金额争议",
+   "events": 1
+  },
+  {
+   "issue": "加班与职场强度",
+   "events": 1
+  },
+  {
+   "issue": "旅游意外险争议",
+   "events": 1
+  },
+  {
+   "issue": "冒名与统筹险",
+   "events": 1
+  },
+  {
+   "issue": "定损争议",
+   "events": 1
+  },
+  {
+   "issue": "团险争议",
+   "events": 1
+  }
+ ],
+ "usage": {
+  "heat_hist": "用于【槽位数量】—— 高发议题是主体的慢性病，酝酿更久、涉及人更多，配更多候选",
+  "novelty": "用于【采样温度】—— 组合越新越未知，temperature 调高以扩大探索",
+  "note": "★ 两者作用不同：一个调数量，一个调探索度"
+ }
+}

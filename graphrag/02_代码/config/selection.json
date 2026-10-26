@@ -1,0 +1,76 @@
+{
+ "version": "2.1",
+ "mode": "mvp",
+ "note": "选人参数 v2.1 —— ① MVP 不考虑跨渠道搬运（cross_channel_propensity 不进打分）；② 话题改用三级匹配 + 模糊检索；③ 组队改为「Gumbel 噪声 + 最小费用最大流」= 配额硬约束下的加权概率抽样，种子可复现。",
+ "seed": {
+  "main": 20261002,
+  "streams": {
+   "team": 1,
+   "tiebreak": 3,
+   "sampling": 2
+  },
+  "_note": "组长 3.5：不用全局 random.seed()，每个随机流独立 random.Random(seed + offset)。team=组队概率抽样流；tiebreak=并列打破流。"
+ },
+ "weights": {
+  "topic": 1,
+  "stance": 0.9,
+  "tier": 0.7,
+  "channel": 0.5,
+  "experience": 0.4,
+  "activity": 0.3,
+  "cooldown": 5
+ },
+ "topic_match": {
+  "exact": 1,
+  "same_top": 0.6,
+  "fuzzy_alias": 0.45,
+  "fuzzy_char_weight": 0.6,
+  "fuzzy_floor": 0.15,
+  "_note": "三级：① 精确命中 taxonomy 叶子 = 1.0；② 同大类 = 0.6；③ 模糊层（映射表 weak + 字符 bigram 相似）= 0.15~0.45。模糊层就是'拟合不完全'时的放宽通道。"
+ },
+ "stance_fit": {
+  "pro": {
+   "倾向维权": 1,
+   "中立": 0.45,
+   "倾向企业": 0.05
+  },
+  "counter": {
+   "倾向维权": 0.05,
+   "中立": 0.55,
+   "倾向企业": 1
+  },
+  "neutral": {
+   "倾向维权": 0.6,
+   "中立": 0.6,
+   "倾向企业": 0.6
+  }
+ },
+ "tier_target": {
+  "头部": 0.92,
+  "腰部": 0.55,
+  "长尾": 0.15,
+  "央媒门户": 0.9,
+  "财经垂媒": 0.5,
+  "地方行业": 0.15,
+  "默认": 0.5,
+  "具名": 1
+ },
+ "candidate_width_extra": 20,
+ "max_candidates_per_slot": 200,
+ "cooldown_events": 5,
+ "_cooldown_note": "组长 2.6 要求 5 事件冷却。软惩罚而非硬过滤。注意组长同时要求池内条数 >= 单场配额 3 倍（>=1500），而 k=5 的严格公式是 P_r >= q_r x 6（网民要 1560）—— 两口径不一致，已按 5 场实现并在报告里量化缺口。",
+ "fill_gap_policy": "同角色内把缺口回流给该角色最大槽位；若仍填不满则如实上报，不随机补人",
+ "reserve_ratio": 0,
+ "_reserve_note": "组长 3.0 输出2：「MVP 就按最小要求定好 500 人吧，不扩展了」—— 不再抽候场替补，名单恰好 500 行。",
+ "purity_threshold": 0.6,
+ "purity_fallback_penalty": 1.5,
+ "_purity_note": "槽位带 purity_group：focused = 只要关注该议题的人；noise = 只要不关注该议题的人。topic_match >= purity_threshold 视为「关注」。focused 候选不足时用 noise 的人补，分数扣 purity_fallback_penalty，输出里标 purity_fit=false。",
+ "channel_hard_filter": "primary_channel 必须等于槽位渠道（组长 2.4：一画像一渠道）。★ MVP 不做跨渠道搬运，因此 cross_channel_propensity 不进打分、不参与选人。",
+ "sampling": {
+  "mode": "gumbel",
+  "temperature": 0.25,
+  "_note": "★ 按概率分布随机抽样。给每条候选边加 Gumbel 噪声 score' = score + T x Gumbel(0,1)，再跑最小费用最大流 —— 期望上等价于按 softmax(score/T) 抽样，同时**严格满足配额**。T=0 退化为确定性最优；T 越大抽样越随机。种子固定则结果固定。",
+  "reproducible": true
+ },
+ "weights_note": "MVP 不打 cross_channel（跨渠道搬运不做），也不打 emotion/action_threshold（那是仿真层的输入，不是选人的依据）。"
+}

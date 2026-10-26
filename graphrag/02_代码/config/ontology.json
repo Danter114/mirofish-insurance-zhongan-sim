@@ -1,0 +1,58 @@
+{
+  "version": "1.0",
+  "note": "本体定义。RuleExtractor 与 LLMExtractor 共用这一份；切 LLM 后端时把 prompt 直接发出去即可。",
+  "entity_types": [
+    {
+      "type": "公司主体",
+      "from": "保险/经纪/代理公司",
+      "bind_role": null
+    },
+    {
+      "type": "产品",
+      "from": "具体险种与产品名",
+      "bind_role": null
+    },
+    {
+      "type": "当事人",
+      "from": "投诉人、原告、受害消费者",
+      "bind_role": "客户"
+    },
+    {
+      "type": "律所/专业背书方",
+      "from": "律所号、律师、精算师、医生、财经分析号",
+      "bind_role": "专业背书方"
+    },
+    {
+      "type": "媒体",
+      "from": "持证媒体机构号、财经垂媒",
+      "bind_role": "媒体"
+    },
+    {
+      "type": "监管机构",
+      "from": "金融监管总局、地方监管局、法院、行业协会",
+      "bind_role": "监管"
+    },
+    {
+      "type": "KOL",
+      "from": "10 万粉以上职业化解读账号",
+      "bind_role": "KOL"
+    }
+  ],
+  "relation_types": [
+    "报道",
+    "支持",
+    "反对",
+    "回应",
+    "监管",
+    "投诉",
+    "测评",
+    "法律定性",
+    "冒名",
+    "被诉"
+  ],
+  "forbidden_node_types": [
+    "Agent"
+  ],
+  "llm_prompt_template": "你是保险舆情知识图谱抽取器。给定一段中文舆情文本，输出 JSON：\n{\"entities\":[{\"name\":\"\",\"type\":\"<上面的 entity_types 之一>\",\"is_impostor\":false}],\n \"issues\":[{\"leaf\":\"<必须来自 taxonomy 叶子，不得自造>\",\"confidence\":0.0}],\n \"relations\":[{\"from\":\"\",\"to\":\"\",\"type\":\"<relation_types 之一>\",\"fact\":\"\"}]}\n硬规则：1) 只能输出词表内的 leaf，词表外的一律放进 oov_issues；2) 不得输出 Agent 类节点；3) 冒名公司必须标 is_impostor=true；4) 关系必须有事实依据，不要脑补。",
+  "llm_backend_note": "替换方式：在 src/extractor.py 里让 LLMExtractor 调用内部 LLM（LightRAG / vLLM / 内网 API），输入输出契约不变。"
+}

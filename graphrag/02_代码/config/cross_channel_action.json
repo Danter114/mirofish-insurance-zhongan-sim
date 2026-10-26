@@ -1,0 +1,37 @@
+{
+ "version": "1.0",
+ "updated_at": "2026-10-05",
+ "owner": "组长（推演层降难度的决定）",
+ "principle": "★ 信息可见性与动作执行【解耦】—— 看得到 ≠ 做得到，做得到 ≠ 看得到。",
+ "rules": {
+  "visibility": {
+   "rule": "平台内可见",
+   "desc": "人只能在自己活跃的平台（primary_channel）得知帖子和信息。别的平台上发生什么，他看不到。",
+   "impl": "visible_channels(agent) == [agent.primary_channel]"
+  },
+  "action": {
+   "rule": "跨平台可动作",
+   "desc": "只要他『很想去做』（情绪越过 action_threshold 的档位线），就能去任意平台执行动作，不受自己活跃平台的限制。",
+   "impl": "action_channels(agent) = 全部 6 个渠道，减去下面两条特殊限制"
+  },
+  "exceptions": [
+   {
+    "channel": "黑猫投诉",
+    "only_role": "客户",
+    "why": "投诉/维权只对『客户』开放 —— 没有消费关系的人去投诉没有意义",
+    "note": "★ 若 agent 的主渠道本来就是黑猫投诉，则不受此限（否则他无法在自己平台动作）"
+   },
+   {
+    "channel": "监管通报",
+    "only_role": "监管",
+    "why": "监管发布是监管机构的专属动作",
+    "note": "★ 若 agent 的主渠道本来就是监管通报，则不受此限"
+   }
+  ]
+ },
+ "impact_on_actions": {
+  "note": "跨平台动作时，该平台的动作集仍按【角色 x 目标平台】白名单取，不是按主渠道取。",
+  "example": "一个微博网民想去抖音发帖 -> 取 (网民 x 抖音) 的动作集 = like/comment/repost/post/report",
+  "consequence": "reach_multiplier / emotion_amplifier / info_decay_rate 应该用【目标平台】的值，不是主渠道的值 —— 这样跨平台扩散才会被平台的传播特性放大或衰减。"
+ }
+}

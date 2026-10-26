@@ -1,0 +1,259 @@
+{
+ "version": "3.0",
+ "updated_at": "2026-10-05",
+ "supersedes": "《post动作触发规则 v1.0》《v2.0 机构增强版》《媒体post规则修订 v2.1》—— 本文件是唯一现行版",
+ "scope": "★ 按【本地已实现的规则】写，不是规范 v4 的 30 格/8 动作版本。差异见 diff_from_spec_v4。",
+ "principle": "post（发起型动作）不受 action_threshold 约束，由任务驱动。三个档位管『反应』，本文件管『发起』。两条线并行。",
+ "roles": [
+  "网民",
+  "客户",
+  "KOL",
+  "媒体",
+  "监管"
+ ],
+ "global": {
+  "post_ratio": 0.15,
+  "media_priority": 0.4,
+  "note": "每轮全局 post 名额 = 本轮激活人数 × post_ratio；媒体优先占其中 media_priority。"
+ },
+ "action_enum": [
+  "like",
+  "comment",
+  "repost",
+  "post",
+  "report",
+  "complaint"
+ ],
+ "action_enum_note": "★ 6 个枚举（本地实现）。规范 v4 是 8 个（多了 block/delete/extreme_speech、like 改名 like_post）—— 我们没跟。",
+ "individual": {
+  "网民": {
+   "drivers": [
+    "跟帖",
+    "爆料"
+   ],
+   "trigger": "首次互动后 M 轮内可发起；或 瞬时效价 < 中度线（情绪压不住想自己开帖）",
+   "cooldown": 4,
+   "max_per_event": 2,
+   "params": {
+    "M": 2,
+    "中度线": "-0.39 ~ -0.61"
+   },
+   "note": "网民发帖是偶发行为 —— 大部分网民整场只围观，不发帖"
+  },
+  "客户": {
+   "drivers": [
+    "维权自述",
+    "诉求进展"
+   ],
+   "trigger": "★ 去掉『发过帖就永远成立』的自激循环。改成收敛的：情绪比上次更低才继续发",
+   "conditions": [
+    "① 首次发声：自身效价 < 重度线（-0.61 ~ -0.89）—— 真的被激怒了",
+    "② 持续发声：本次效价比【上次发帖时】更低 —— 事情没解决，情绪还在恶化",
+    "③ 诉求有进展：出现新争议点 / 处理结果出炉"
+   ],
+   "logic": "① 或 ② 或 ③，且未超每场上限",
+   "cooldown": 3,
+   "max_per_event": 3,
+   "params": {
+    "重度线": -0.61,
+    "持续发声比较": "valence_now < valence_at_last_post"
+   },
+   "note": "旧参数用的是 -0.35（与规范的重度线 -0.61~-0.89 不一致），且带一个『已发过帖』的或条件 —— 发过帖的客户一到冷却结束就发，实测人均 1.8 条、占总帖数 29%"
+  },
+  "KOL": {
+   "drivers": [
+    "跟热点",
+    "表态"
+   ],
+   "trigger": "★ 用【他自己的状态】判定，不是群体平均 —— 旧版把 R2 的『角色激活指标』误当成【个人行动】的触发，是范畴错误",
+   "conditions": [
+    "自身唤醒度 > 0.55（他被这件事激动了）",
+    "自身效价 < -0.15（是负面方向）",
+    "议题热度 > 0.15（有人在看，表态才有意义）"
+   ],
+   "amplifier": "全网负面占比 > 0.55 时，唤醒阈值下调 0.10（氛围到了，跟的人更多）",
+   "cooldown": 2,
+   "max_per_event": 5,
+   "params": {
+    "唤醒阈值": 0.55,
+    "效价阈值": -0.15,
+    "热度线": 0.15,
+    "氛围阈值": 0.55,
+    "氛围放宽": 0.1
+   },
+   "note": "旧参数（唤醒>0.60 且 负面占比>0.55）是群体指标；实测中群体唤醒度收敛到 0.286，永远触发不了，KOL 全场 0 条"
+  }
+ },
+ "media": {
+  "drivers": [
+   "事件驱动 A",
+   "节奏驱动 B"
+  ],
+  "stage_types": [
+   {
+    "name": "快讯",
+    "weight": 1,
+    "need_source": false,
+    "trigger": "领域内 且 该议题本场尚无任何媒体报道"
+   },
+   {
+    "name": "首报",
+    "weight": 1.5,
+    "need_source": true,
+    "trigger": "领域内 且 有信源 且 本机构本场未报过该议题"
+   },
+   {
+    "name": "跟进",
+    "weight": 1.2,
+    "need_source": false,
+    "trigger": "该议题已有 ≥1 家媒体报道 且 本机构未报过该议题"
+   },
+   {
+    "name": "短评",
+    "weight": 0.8,
+    "need_source": false,
+    "trigger": "热度 > 0.15 且 与领域沾边（含跨领域）"
+   },
+   {
+    "name": "评论",
+    "weight": 1.1,
+    "need_source": false,
+    "trigger": "事件热度已进入前三"
+   },
+   {
+    "name": "深度",
+    "weight": 1.6,
+    "need_source": true,
+    "trigger": "事件持续 ≥ 3 轮 且 出现新争议点"
+   }
+  ],
+  "selection": "★ 收集所有成立的帖型，按 weight 加权随机选 —— 不是『第一个成立就用』。否则权重最低的短评会因条件最容易满足而被垄断。",
+  "by_org_type": {
+   "自媒体矩阵": {
+    "cooldown": 1,
+    "heat_gate": 0.1,
+    "max_per_event": 12,
+    "cross_domain_heat": 0.2
+   },
+   "都市报": {
+    "cooldown": 2,
+    "heat_gate": 0.12,
+    "max_per_event": 8,
+    "cross_domain_heat": 0.2
+   },
+   "融媒体中心": {
+    "cooldown": 2,
+    "heat_gate": 0.15,
+    "max_per_event": 8,
+    "cross_domain_heat": 0.2
+   },
+   "行业垂媒": {
+    "cooldown": 3,
+    "heat_gate": 0.18,
+    "max_per_event": 5,
+    "cross_domain_heat": 0.25
+   },
+   "财经媒体": {
+    "cooldown": 3,
+    "heat_gate": 0.18,
+    "max_per_event": 5,
+    "cross_domain_heat": 0.25
+   },
+   "党媒": {
+    "cooldown": 4,
+    "heat_gate": 0.25,
+    "max_per_event": 3,
+    "cross_domain_heat": 0.3
+   }
+  },
+  "cross_domain_tiers": [
+   {
+    "heat_above": 0.3,
+    "allow": [
+     "自媒体矩阵",
+     "都市报",
+     "融媒体中心",
+     "行业垂媒",
+     "财经媒体",
+     "党媒"
+    ]
+   },
+   {
+    "heat_above": 0.25,
+    "allow": [
+     "自媒体矩阵",
+     "都市报",
+     "融媒体中心",
+     "行业垂媒",
+     "财经媒体"
+    ]
+   },
+   {
+    "heat_above": 0.2,
+    "allow": [
+     "自媒体矩阵",
+     "都市报",
+     "融媒体中心"
+    ]
+   }
+  ],
+  "cross_domain_note": "热度不达线时，媒体只能报自己报道领域内的事件 —— 避免在冷门事件上蹭热度。"
+ },
+ "regulator": {
+  "drivers": [
+   "程序阶段"
+  ],
+  "stages": [
+   "监测",
+   "约谈",
+   "立案",
+   "通报",
+   "处罚"
+  ],
+  "stages_producing_post": [
+   "通报",
+   "处罚"
+  ],
+  "stage_trigger": {
+   "监测": "管辖范围内出现议题（不发声）",
+   "约谈": "投诉/举报量 > 阈值 或 上级督办（不发声）",
+   "立案": "有违法线索 且 持续 N 轮（不发声）",
+   "通报": "调查完成（post）",
+   "处罚": "查实违法（post）"
+  },
+  "cooldown_per_stage": 1,
+  "max_per_event": 2,
+  "note": "★ 绝大多数舆情监管只是『在看』，不会发声。只有调查完成才有通报。"
+ },
+ "domain_gate": {
+  "note": "机构账号（媒体/监管）的 post 必须过【领域闸门】—— 事件议题要落在该机构类型的报道领域/管辖范围内。",
+  "source": "config/org_persona.json :: domains（媒体 6 类 + 监管 5 类）",
+  "bridge": "KG 议题名要先过 config/topic_alias.json :: general_bridge 映射到 47 话题名"
+ },
+ "active_hours_gate": "机构账号的 post 只能落在 active_hours（值班时段）内。",
+ "params_status": "★ 全部阈值标为「待标定」—— 须在回测集之外标定（规范 R2 原则）。",
+ "diff_from_spec_v4": {
+  "note": "我们【没有跟】规范 v4 的这几处改动。推演层实现时以本文件为准。",
+  "items": [
+   "话题库：我们用 47 通用话题；v4 是 12 个保险专用话题（理赔速度/保费/条款透明度…）",
+   "动作枚举：我们用 6 个；v4 是 8 个（多了 block/delete/extreme_speech）",
+   "有效组合矩阵：我们用 21 格；v4 是 30 格，且 v4 的动作集满足严格嵌套链",
+   "重度档：我们只有客户有；v4 让网民也有（投诉、过激言论）",
+   "顶层 channel 字段：我们保留；v4 删除，改由 agent_id 前缀 + channel_behavior.channel 携带"
+  ]
+ },
+ "recalibration": {
+  "date": "2026-10-05",
+  "reason": "热度模型从 minmax（最热恒为 1.000）换成饱和曲线（floor 0.05 + 1-exp(-E/S)）后，heat 尺度整体下移。post 规则的 heat 相关阈值没跟着改，实测中出现【媒体 0 条】—— 全部被热度门槛卡死。",
+  "mapping": "旧尺度(cross 0.60/0.70/0.85, gate 0.30~0.60) -> 新尺度(cross 0.20/0.25/0.30, gate 0.10~0.25)",
+  "note": "新尺度下本事件 t0 最高 heat 0.351 恰好跨过最高档跨领域线 0.30。"
+ },
+ "quota_note": "★ 客户占比调整：一场事件的现场结构应是『围观者为主、当事人为辅』。原 118/500 = 23.6%，比 KOL(13.4%) + 媒体(7%) 加起来还多。降到 80/500 = 16%，名额给网民与 KOL。",
+ "quota_500": {
+  "网民": 295,
+  "客户": 80,
+  "KOL": 75,
+  "媒体": 35,
+  "监管": 15
+ }
+}

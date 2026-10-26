@@ -1,0 +1,401 @@
+{
+ "version": "1.1",
+ "updated_at": "2026-10-02",
+ "note": "话题要素词表 —— 用来给每条帖子生成它**自己的** topic_list。★ v1.1：每个词加 feeds（它支撑哪个 taxonomy 叶子）；feeds 为空 = 该词没有词表归属，自动进 taxonomy 采购清单。这样 topic_list 就成了 taxonomy 的**语料来源与校验基准**，而不是两套并行词表。",
+ "scan_fields": [
+  "title",
+  "content",
+  "topic_tag",
+  "extract_entity"
+ ],
+ "layer_order_note": "topic_list 按层输出：主体 -> 产品 -> 事件类型 -> 涉事内容 -> 责任链路 -> 回应处置 -> 舆情反应 -> 法律合规 -> 传播动作 -> 经营与背景。层内按词表定义顺序。",
+ "layers": [
+  {
+   "name": "主体",
+   "terms": [
+    {
+     "term": "众安保险",
+     "evidence": "众安",
+     "feeds": [],
+     "role": "non_topic",
+     "note": "结构性词（实体/生命周期/反应/行为），本就不该进 taxonomy，只用于帖级区分"
+    },
+    {
+     "term": "第三方广告公司",
+     "evidence": "第三方广告公司|第三方广告服务商|第三方公司|第三方广告|第三方",
+     "feeds": [],
+     "role": "non_topic",
+     "note": "结构性词（实体/生命周期/反应/行为），本就不该进 taxonomy，只用于帖级区分"
+    }
+   ]
+  },
+  {
+   "name": "产品",
+   "terms": [
+    {
+     "term": "宠物险",
+     "evidence": "宠物险|宠物保险|宠物医疗险",
+     "feeds": [],
+     "role": "non_topic",
+     "note": "结构性词（实体/生命周期/反应/行为），本就不该进 taxonomy，只用于帖级区分"
+    }
+   ]
+  },
+  {
+   "name": "事件类型",
+   "terms": [
+    {
+     "term": "广告",
+     "evidence": "广告",
+     "feeds": [],
+     "role": "oov_candidate",
+     "note": "大类级词，不落到叶子（归 营销内容与价值观争议 大类）"
+    },
+    {
+     "term": "低俗营销",
+     "evidence": "低俗|擦边|博眼球|出格|重口味",
+     "feeds": [
+      "广告内容低俗"
+     ],
+     "role": "taxonomy_leaf"
+    },
+    {
+     "term": "恶意P图",
+     "evidence": "P图|p图|P到|P上|p上|P身|p身|拼接|图像处理",
+     "feeds": [
+      "广告内容低俗"
+     ],
+     "role": "taxonomy_leaf"
+    },
+    {
+     "term": "引发舆论争议",
+     "evidence": "争议|引发|热议|讨论|抨击|众怒|众矢之的|愤怒|不满|骂",
+     "feeds": [],
+     "role": "oov_candidate",
+     "note": "跨议题通用词，任何议题都可能引发争议，做叶子会让所有事件同分"
+    },
+    {
+     "term": "违背公序良俗",
+     "evidence": "公序良俗|社会良好风尚|社会公德|伦理道德",
+     "feeds": [
+      "广告内容低俗"
+     ],
+     "role": "taxonomy_leaf"
+    }
+   ]
+  },
+  {
+   "name": "涉事内容",
+   "terms": [
+    {
+     "term": "女性",
+     "evidence": "女性|女生|她们|尊重女",
+     "feeds": [],
+     "role": "oov_candidate",
+     "note": "描述词，不是议题"
+    },
+    {
+     "term": "私密部位",
+     "evidence": "私密部位|隐私部位|女性私处|私处|下体|隐私",
+     "feeds": [
+      "广告内容低俗"
+     ],
+     "role": "taxonomy_leaf"
+    },
+    {
+     "term": "不雅内容",
+     "evidence": "不雅|淫秽|色情|变态|恶心|低俗到",
+     "feeds": [
+      "广告内容低俗"
+     ],
+     "role": "taxonomy_leaf"
+    },
+    {
+     "term": "冒犯女性",
+     "evidence": "冒犯女性|辱女|物化|侮辱了女性|侮辱女性|不尊重女性|严重冒犯|挑衅|公然侮辱",
+     "feeds": [
+      "性别与价值观争议"
+     ],
+     "role": "taxonomy_leaf"
+    },
+    {
+     "term": "宠物犬",
+     "evidence": "小狗|狗狗|宠物犬|狗身上|宠物身上|宠物主人|养宠",
+     "feeds": [],
+     "role": "oov_candidate",
+     "note": "描述词，不是议题"
+    },
+    {
+     "term": "女性安全",
+     "evidence": "女性安全|女性健康|保护好自己",
+     "feeds": [
+      "性别与价值观争议"
+     ],
+     "role": "taxonomy_leaf"
+    },
+    {
+     "term": "用户威胁退保",
+     "evidence": "退保",
+     "feeds": [
+      "退保损失"
+     ],
+     "role": "taxonomy_leaf"
+    }
+   ]
+  },
+  {
+   "name": "责任链路",
+   "terms": [
+    {
+     "term": "朋友圈投放",
+     "evidence": "朋友圈",
+     "feeds": [],
+     "role": "non_topic",
+     "note": "结构性词（实体/生命周期/反应/行为），本就不该进 taxonomy，只用于帖级区分"
+    },
+    {
+     "term": "AI生成图片",
+     "evidence": "AI生成|ai生成|AI技术生成|AI图|ai图|由AI|AI.{0,2}背锅",
+     "feeds": [],
+     "role": "non_topic",
+     "note": "结构性词（实体/生命周期/反应/行为），本就不该进 taxonomy，只用于帖级区分"
+    },
+    {
+     "term": "AI审核",
+     "evidence": "AI审核",
+     "feeds": [],
+     "role": "non_topic",
+     "note": "结构性词（实体/生命周期/反应/行为），本就不该进 taxonomy，只用于帖级区分"
+    },
+    {
+     "term": "未经公司审核",
+     "evidence": "未经公司审核|未经.{0,4}审核流程|内部审核|审核流程|审核机制|多层审核|审核链条|审核体系",
+     "feeds": [],
+     "role": "non_topic",
+     "note": "结构性词（实体/生命周期/反应/行为），本就不该进 taxonomy，只用于帖级区分"
+    },
+    {
+     "term": "渠道误发",
+     "evidence": "误发|错发",
+     "feeds": [],
+     "role": "non_topic",
+     "note": "结构性词（实体/生命周期/反应/行为），本就不该进 taxonomy，只用于帖级区分"
+    }
+   ]
+  },
+  {
+   "name": "回应处置",
+   "terms": [
+    {
+     "term": "众安回应",
+     "evidence": "回应|答复|众安保险客服|众安客服|客服(表示|称|回应)",
+     "feeds": [],
+     "role": "non_topic",
+     "note": "结构性词（实体/生命周期/反应/行为），本就不该进 taxonomy，只用于帖级区分"
+    },
+    {
+     "term": "公开致歉",
+     "evidence": "致歉|道歉|歉意|不适与情感伤害",
+     "feeds": [],
+     "role": "non_topic",
+     "note": "结构性词（实体/生命周期/反应/行为），本就不该进 taxonomy，只用于帖级区分"
+    },
+    {
+     "term": "广告下线",
+     "evidence": "下线",
+     "feeds": [],
+     "role": "non_topic",
+     "note": "结构性词（实体/生命周期/反应/行为），本就不该进 taxonomy，只用于帖级区分"
+    },
+    {
+     "term": "下架素材",
+     "evidence": "下架",
+     "feeds": [],
+     "role": "non_topic",
+     "note": "结构性词（实体/生命周期/反应/行为），本就不该进 taxonomy，只用于帖级区分"
+    },
+    {
+     "term": "终止合作",
+     "evidence": "终止合作|终止与该|责成渠道",
+     "feeds": [],
+     "role": "non_topic",
+     "note": "结构性词（实体/生命周期/反应/行为），本就不该进 taxonomy，只用于帖级区分"
+    },
+    {
+     "term": "内部问责",
+     "evidence": "问责|启动问责|整改|公开整改",
+     "feeds": [],
+     "role": "non_topic",
+     "note": "结构性词（实体/生命周期/反应/行为），本就不该进 taxonomy，只用于帖级区分"
+    },
+    {
+     "term": "加强内容审核",
+     "evidence": "更严格的审核|引入更严格|杜绝|加强内容把关",
+     "feeds": [],
+     "role": "non_topic",
+     "note": "结构性词（实体/生命周期/反应/行为），本就不该进 taxonomy，只用于帖级区分"
+    }
+   ]
+  },
+  {
+   "name": "舆情反应",
+   "terms": [
+    {
+     "term": "网友批评",
+     "evidence": "网友",
+     "feeds": [],
+     "role": "non_topic",
+     "note": "结构性词（实体/生命周期/反应/行为），本就不该进 taxonomy，只用于帖级区分"
+    },
+    {
+     "term": "甩锅第三方",
+     "evidence": "甩锅|背锅|推给第三方|推给AI|归咎于|责任推给|往外推|临时工|挡枪",
+     "feeds": [],
+     "role": "non_topic",
+     "note": "结构性词（实体/生命周期/反应/行为），本就不该进 taxonomy，只用于帖级区分"
+    },
+    {
+     "term": "呼吁监管介入",
+     "evidence": "相关部门介入|呼吁.{0,6}介入|监管.{0,4}介入|介入调查",
+     "feeds": [],
+     "role": "non_topic",
+     "note": "结构性词（实体/生命周期/反应/行为），本就不该进 taxonomy，只用于帖级区分"
+    },
+    {
+     "term": "质疑品牌信任",
+     "evidence": "信任|难以接受|难以信服|不满意|不信|洗清",
+     "feeds": [],
+     "role": "non_topic",
+     "note": "结构性词（实体/生命周期/反应/行为），本就不该进 taxonomy，只用于帖级区分"
+    },
+    {
+     "term": "要求追责处罚",
+     "evidence": "罚款|追责|要求.{0,8}(处罚|处理|整改)|依法追责|呼吁.{0,8}(处罚|查处)",
+     "feeds": [],
+     "role": "non_topic",
+     "note": "结构性词（实体/生命周期/反应/行为），本就不该进 taxonomy，只用于帖级区分"
+    },
+    {
+     "term": "事件持续发酵",
+     "evidence": "发酵|升温|持续关注|持续讨论",
+     "feeds": [],
+     "role": "non_topic",
+     "note": "结构性词（实体/生命周期/反应/行为），本就不该进 taxonomy，只用于帖级区分"
+    }
+   ]
+  },
+  {
+   "name": "法律合规",
+   "terms": [
+    {
+     "term": "广告法",
+     "evidence": "广告法",
+     "feeds": [],
+     "role": "oov_candidate",
+     "note": "建议新增叶子「广告合规」（法条级议题）"
+    },
+    {
+     "term": "生成式AI管理办法",
+     "evidence": "生成式人工智能服务管理暂行办法|生成式人工智能",
+     "feeds": [],
+     "role": "oov_candidate",
+     "note": "建议新增叶子「AI内容合规」"
+    },
+    {
+     "term": "人格权侵害",
+     "evidence": "肖像权|名誉权|荣誉权|隐私权|个人信息权益|身心健康",
+     "feeds": [],
+     "role": "oov_candidate",
+     "note": "建议新增叶子「人格权与隐私」"
+    },
+    {
+     "term": "行政处罚",
+     "evidence": "行政处罚|通报批评|处罚决定|被处罚|罚款决定",
+     "feeds": [
+      "罚单处罚"
+     ],
+     "role": "taxonomy_leaf"
+    }
+   ]
+  },
+  {
+   "name": "传播动作",
+   "terms": [
+    {
+     "term": "转发扩散",
+     "evidence": "转发|//@",
+     "feeds": [],
+     "role": "non_topic",
+     "note": "结构性词（实体/生命周期/反应/行为），本就不该进 taxonomy，只用于帖级区分"
+    },
+    {
+     "term": "原帖被删",
+     "evidence": "被删|删了|删帖|已删除|内容不可见|已圆寂|给原作者.{0,8}下",
+     "feeds": [],
+     "role": "non_topic",
+     "note": "结构性词（实体/生命周期/反应/行为），本就不该进 taxonomy，只用于帖级区分"
+    },
+    {
+     "term": "留档存证",
+     "evidence": "存档|存个档",
+     "feeds": [],
+     "role": "non_topic",
+     "note": "结构性词（实体/生命周期/反应/行为），本就不该进 taxonomy，只用于帖级区分"
+    }
+   ]
+  },
+  {
+   "name": "经营与背景",
+   "terms": [
+    {
+     "term": "宠物险保费规模",
+     "evidence": "保费",
+     "feeds": [
+      "经营业绩与资本市场"
+     ],
+     "role": "taxonomy_leaf"
+    },
+    {
+     "term": "服务宠物主规模",
+     "evidence": "宠物主",
+     "feeds": [
+      "经营业绩与资本市场"
+     ],
+     "role": "taxonomy_leaf"
+    },
+    {
+     "term": "理赔难",
+     "evidence": "理赔难|不理赔|无法获得理赔",
+     "feeds": [
+      "拒赔"
+     ],
+     "role": "taxonomy_leaf"
+    },
+    {
+     "term": "互联网保险公司",
+     "evidence": "互联网保险公司",
+     "feeds": [
+      "经营业绩与资本市场"
+     ],
+     "role": "taxonomy_leaf"
+    },
+    {
+     "term": "港股上市",
+     "evidence": "上市|联交所",
+     "feeds": [
+      "经营业绩与资本市场"
+     ],
+     "role": "taxonomy_leaf"
+    },
+    {
+     "term": "不设分支机构",
+     "evidence": "不设任何分支机构|分支机构",
+     "feeds": [
+      "经营业绩与资本市场"
+     ],
+     "role": "taxonomy_leaf"
+    }
+   ]
+  }
+ ]
+}

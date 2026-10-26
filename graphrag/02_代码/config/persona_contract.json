@@ -1,0 +1,203 @@
+{
+ "version": "2.1",
+ "owner": "建图 / 定槽位 / 选人模块（消费方，画像侧）",
+ "provider": "画像库模块（生产方，画像库侧）",
+ "updated_at": "2026-10-02",
+ "based_on": "组长《给画像库侧/画像侧的需求清单》v2 —— 角色 6 类(KOC 已删) / 渠道 6 个 / 有效组合 20 类 / 画像库 1000-2000 条 / 单场组队 500 人 / 一人一渠道；v2.1 按 MVP 决定收敛：① 跨渠道搬运不做；② 动作阈值采用画像库的「效价一维三档解锁线 + 平台动作集」；③ 话题允许模糊匹配。",
+ "delivery": "persona_library.json —— 数组，或 {\"personas\": [...]}；UTF-8",
+ "note": "★ v2.1 三条放宽（MVP 决定）：① primary_channel 一人一个不变，但 cross_channel_propensity **不再要求**（跨渠道搬运 MVP 不做）；② concern_topics 的键**不强制**用 taxonomy 叶子 —— 用你们的话题库也行，我用 config/topic_alias.json + 模糊检索来对齐；③ action_threshold 的形态以你们规范为准。",
+ "fields": {
+  "P0": {
+   "agent_id": {
+    "type": "str",
+    "desc": "全局唯一、跨事件稳定的账号主键",
+    "rule": "非空、不重复；不要用昵称",
+    "sample": "AG00001"
+   },
+   "role_type": {
+    "type": "enum",
+    "desc": "6 类之一，单值",
+    "rule": "网民|客户|KOL|媒体|专业背书方|监管（KOC 已删）",
+    "sample": "客户"
+   },
+   "primary_channel": {
+    "type": "enum",
+    "desc": "★ 这个人的主阵地，一人只有一个（组长 2.4：不做多账号）",
+    "rule": "微博|抖音|小红书|黑猫投诉|新闻门户|监管通报；(role_type, primary_channel) 必须落在 20 个有效组合内",
+    "sample": "黑猫投诉"
+   },
+   "concern_topics": {
+    "type": "list[str] | dict[str,float]",
+    "desc": "★ 关心的议题。**可以是 taxonomy 叶子，也可以是你们的话题库原词**",
+    "rule": "至少 1 个；本流程会用 config/topic_alias.json 做两级对齐：strong=语义等价直接归一，weak=语义接近交给模糊层打分",
+    "sample": {
+     "理赔速度": 0.3,
+     "消费者权益": 0.25,
+     "其他": 0.45
+    }
+   },
+   "stance_bias": {
+    "type": "enum",
+    "desc": "立场倾向（不是具体立场；具体立场由图谱按槽位分配）",
+    "rule": "倾向维权|中立|倾向企业",
+    "sample": "倾向维权",
+    "mvp_required": true,
+    "note": "正反方切分要用，MVP 仍然需要"
+   }
+  },
+  "P1": {
+   "subtype": {
+    "type": "str",
+    "desc": "子型，同一角色内的细分类，用于多样性校验",
+    "rule": "非空",
+    "sample": "理赔被拒"
+   },
+   "influence_weight": {
+    "type": "float",
+    "desc": "★ 影响力，要和公式可比 —— 不能直接塞绝对粉丝数",
+    "rule": "0~1（或角色内归一化后给出）",
+    "sample": 0.62
+   },
+   "follower_count": {
+    "type": "int",
+    "desc": "粉丝数真值，影响力分层的锚点",
+    "rule": ">=0",
+    "sample": 12000
+   },
+   "activity_level": {
+    "type": "float",
+    "desc": "日常活跃度",
+    "rule": "0~1",
+    "sample": 0.71
+   },
+   "active_hours": {
+    "type": "list[int]",
+    "desc": "活跃时段（整数小时列表）",
+    "rule": "整数 0~23；不要写 12:00-14:00",
+    "sample": [
+     9,
+     12,
+     20,
+     21,
+     22
+    ]
+   },
+   "cross_channel_propensity": {
+    "type": "float",
+    "desc": "跨渠道搬运倾向（组长 2.4 ③）",
+    "rule": "0~1；KOL/媒体 高，普通网民极低",
+    "sample": 0.15,
+    "mvp_required": false,
+    "note": "★ MVP 不做跨渠道传播（只管渠道内），因此这一列**本流程不要求**。非 MVP 再做时补上即可，字段先留着。"
+   },
+   "emotion_sensitivity": {
+    "type": "dict",
+    "desc": "★ 情绪敏感度，按事件类型分别给（组长 2.2 字段6）",
+    "rule": "键 = 事件类型，值 0~1",
+    "sample": {
+     "营销内容与价值观争议": 0.8,
+     "理赔服务": 0.3
+    }
+   },
+   "persona_bio": {
+    "type": "str",
+    "desc": "人设文本，喂给 LLM",
+    "rule": "建议 >=20 字",
+    "sample": "理赔被拒，倾向维权，黑猫投诉重度用户……"
+   },
+   "follow_scope": {
+    "type": "list[str]",
+    "desc": "关注圈层，用于装配关注网络",
+    "rule": "建议 2~3 个",
+    "sample": [
+     "财经媒体",
+     "法律维权"
+    ]
+   },
+   "claim_experience": {
+    "type": "bool",
+    "desc": "有无理赔经历，客户槽位加权",
+    "rule": "bool",
+    "sample": true
+   },
+   "region": {
+    "type": "str",
+    "desc": "地区，建议落到省市（组长 2.2 字段3：报告要用）",
+    "rule": "省市",
+    "sample": "浙江杭州"
+   },
+   "action_threshold": {
+    "type": "dict",
+    "desc": "★ 行动解锁线（三档 × 角色 × 平台动作集）—— 按画像库规范 v3",
+    "rule": "{轻度: 效价线, 中度: 效价线, 重度: 效价线|null}；重度只对网民与客户存在；必须保证 重度<中度<轻度 不倒挂",
+    "sample": {
+     "轻度": -0.3,
+     "中度": -0.5,
+     "重度": -0.7
+    },
+    "note": "本流程**只透传**，不参与选人。动作集可用性由 channel_behavior.available_actions 决定（角色白名单 ∩ 平台白名单）。"
+   },
+   "channel_behavior": {
+    "type": "object",
+    "desc": "★ 该人物唯一平台上的行为参数包 —— 按画像库规范 v3",
+    "rule": "含 role_type / channel / available_actions / reach_multiplier / emotion_amplifier / info_decay_rate",
+    "sample": {
+     "channel": "抖音",
+     "available_actions": [
+      "like_post",
+      "repost",
+      "comment"
+     ]
+    },
+    "note": "本流程只透传给仿真层，不参与选人。"
+   }
+  },
+  "P2": {
+   "gender": {
+    "type": "str",
+    "desc": "性别，写进人设文本 + 报告切片",
+    "sample": "女"
+   },
+   "age_band": {
+    "type": "str",
+    "desc": "年龄段，同上",
+    "sample": "31-40"
+   },
+   "occupation": {
+    "type": "str",
+    "desc": "职业",
+    "sample": "企业职员"
+   },
+   "mbti": {
+    "type": "str",
+    "desc": "性格/MBTI，人设文本 + 情绪敏感度的语义解释",
+    "sample": "ENFP"
+   },
+   "complaint_propensity": {
+    "type": "float",
+    "desc": "投诉倾向",
+    "sample": 0.66
+   },
+   "share_propensity": {
+    "type": "float",
+    "desc": "转发倾向",
+    "sample": 0.44
+   }
+  }
+ },
+ "forbidden": [
+  "不要给具体立场字段（如「对既往症拒赔的态度」）—— 立场由图谱按槽位分配，画像只给倾向",
+  "不要让一个人挂两个渠道（primary_channel 单值）—— 跨渠道传播靠 cross_channel_propensity + 渠道折扣矩阵，不靠多账号",
+  "不要用频道昵称当 agent_id —— 会变会重名",
+  "不要给绝对投诉量或内部数据 —— 命题已删除且不合规",
+  "influence_weight 不要直接塞绝对粉丝数 —— KOL 的粉丝量会碾压所有角色，公式失效",
+  "MVP 阶段不必给 cross_channel_propensity —— 跨渠道搬运不做，给了也不用"
+ ],
+ "guarantees_from_consumer": [
+  "同一画像在最近 k 场事件内不被复用（cooldown，默认 k=5），状态存在我方 cooldown_state.json，不修改你的库",
+  "抽中的人会回写 (Agent)-[:FILLS {provenance:'generated'}]->(Slot) 边，不改你的原始文件",
+  "每个槽位选完后会输出命中率与缺口，缺口清单反向给你作为补库方向",
+  "组队结果带随机种子与产物记录，任何一份 500 人名单都能被复现",
+  "话题对不上时不硬拒：先用 config/topic_alias.json 做强/弱映射，弱映射与字面相似度进模糊层，并按概率抽样 —— 匹配层级（exact/same_top/fuzzy_alias/fuzzy_char）逐人写进名单，可审计"
+ ]
+}

@@ -1,0 +1,65 @@
+{
+ "version": "2.0",
+ "updated_at": "2026-10-05",
+ "problem": [
+  "① base=0.30 太高 —— 冷议题应该能接近 0，而不是从 0.30 起步",
+  "② minmax 归一让【最热的议题永远是 1.000】—— 这是相对值伪装成绝对值。t0 只有 3 条帖、3 万赞，不该是『1.0 火热』",
+  "③ 各平台互动量尺度不同 —— 微博可买粉买热搜、互动量虚高；小红书互动率高但绝对数小；抖音播放量级大但点赞率低"
+ ],
+ "formula": {
+  "step1_单帖": "e(post) = [ln(1+like) + ln(1+comment) + ln(1+collect) + ln(1+repost)] × credibility[平台]",
+  "step2_议题": "E(issue) = Σ e(post)  （只算 t0 窗口内、已按 M3 去重的帖）",
+  "step3_饱和映射": "heat(issue) = floor + (1 - floor) × (1 - exp(-E / S))",
+  "note": "★ 关键改动：不再 minmax。饱和曲线在 E=0 时给 floor、E=S 时约 0.63、E=3S 时约 0.95，趋近但永不到 1.000。这样『绝对有多热』才能被表达。"
+ },
+ "params": {
+  "floor": 0.05,
+  "S": 120,
+  "note": "S 是『全网语境下校正后互动量达到什么水平算很热』的饱和常数。floor 从 0.30 降到 0.05。",
+  "small_post_threshold": 200,
+  "small_post_note": "★ 互动总量（赞+评+藏+转原始值）小于此阈值的帖子，所有平台都不作惩罚 —— 小体量内容没有刷量动机，平台『数据虚高』问题不适用。"
+ },
+ "platform": {
+  "微博": {
+   "credibility": 0.45,
+   "basis": "C",
+   "note": "流量黑产/水军/买热搜问题被人民网舆情数据中心点名，同为真实热度时其互动量数字显著偏高"
+  },
+  "抖音": {
+   "credibility": 0.7,
+   "basis": "C",
+   "note": "播放量级最大（万~亿），但点赞率通常仅 1~5%，绝对数字大而相对率低"
+  },
+  "小红书": {
+   "credibility": 1,
+   "basis": "B",
+   "note": "主流平台中互动率最高、数据最实（多份营销报告一致指向）"
+  },
+  "新闻门户": {
+   "credibility": 0.9,
+   "basis": "C",
+   "note": "互动量小、以评论为主，但基本无刷量动机"
+  },
+  "黑猫投诉": {
+   "credibility": 0.85,
+   "basis": "C",
+   "note": "几乎无公开互动量，热度体现在投诉量而非点赞"
+  },
+  "监管通报": {
+   "credibility": 1,
+   "basis": "C",
+   "note": "无互动量，热度来源是被转载而非被点赞"
+  }
+ },
+ "basis_legend": {
+  "A": "有公开数据可直接引用",
+  "B": "有多份报告方向一致，但无统一数值",
+  "C": "方向有依据，具体数值由本流程拟定 —— 待标定"
+ },
+ "calibrate": "★ credibility 与 S 均须用历史事件（32 场）的真实互动量与回测结果反推标定，当前值为初值。",
+ "aggregation": {
+  "note": "★ 跨平台议题的 heat 聚合：按【帖子互动量 × 平台权重】给每帖对议题热度的贡献加权，再求和。",
+  "formula": "contribution(post) = e(post) × w(platform, post)；E(issue) = Σ contribution；heat = floor + (1-floor)×(1-exp(-E/S))",
+  "w_rule": "w = 1.0 若 该帖互动总量 < small_post_threshold；否则 w = credibility[平台]"
+ }
+}

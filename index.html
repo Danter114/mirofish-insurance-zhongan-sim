@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>风控盾 · 多智能体仿真舆情监测系统</title>
+<style>
+  :root{--fg:#111827;--muted:#6b7280;--line:#e5e7eb;--bg:#f9fafb;--accent:#1d4ed8}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);
+       font:15px/1.65 -apple-system,"Segoe UI","Microsoft YaHei",sans-serif}
+  .wrap{max-width:960px;margin:0 auto;padding:56px 28px 80px}
+  h1{font-size:28px;margin:0 0 6px;letter-spacing:.5px}
+  .sub{color:var(--muted);margin:0 0 8px}
+  .path{color:var(--muted);font-size:13px;margin:0 0 36px}
+  .note{background:#fff;border:1px solid var(--line);border-radius:10px;
+        padding:14px 18px;font-size:13px;color:var(--muted);margin:0 0 32px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+  a.card{display:block;background:#fff;border:1px solid var(--line);border-radius:12px;
+         padding:20px 22px;text-decoration:none;color:inherit;transition:.15s}
+  a.card:hover{border-color:var(--accent);box-shadow:0 2px 14px rgba(29,78,216,.12);transform:translateY(-1px)}
+  .no{font-size:12px;color:var(--accent);font-weight:600;letter-spacing:1px}
+  .name{font-size:17px;font-weight:600;margin:6px 0 4px}
+  .desc{font-size:13px;color:var(--muted);margin:0}
+  footer{margin-top:44px;font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:18px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>风控盾 · 多智能体仿真舆情监测系统</h1>
+  <p class="sub">采集 → 知识图谱 → 多智能体仿真推演 → 可视化研判报告 → 在线交互</p>
+  <p class="path">42 轮 × 4 小时 = 168 小时 ｜ 5 类角色 × 6 个渠道 ｜ 12 场真实事件回测，方向一致率 83%</p>
+
+  <p class="note">
+    这是<b>静态预览</b>：GitHub Pages 上只托管前端，后端没有运行，各页会自动回落到随包内置的数据，
+    右下角徽标会标注「内置数据」。要跑真实后端，请克隆仓库后执行 <code>python 端到端/后端/app.py</code>。
+  </p>
+
+  <div class="grid">
+    <a class="card" href="端到端/后端/静态/demo/board/">
+      <div class="no">01</div>
+      <div class="name">舆情看板</div>
+      <p class="desc">事件概述、时间线关键节点、渠道分布、情绪变化</p>
+    </a>
+    <a class="card" href="端到端/后端/静态/demo/step2/">
+      <div class="no">02</div>
+      <div class="name">知识图谱</div>
+      <p class="desc">实体按角色分层成环，中心为涉事主体，可点选查看画像</p>
+    </a>
+    <a class="card" href="端到端/后端/静态/demo/step3/report.html">
+      <div class="no">03</div>
+      <div class="name">研判报告（完整）</div>
+      <p class="desc">42 轮 / 168 小时的五模块可视化报告：传播路径、情绪演化、关键节点、风险分级、应对建议</p>
+    </a>
+    <a class="card" href="端到端/后端/静态/demo/step5/">
+      <div class="no">04</div>
+      <div class="name">深度互动</div>
+      <p class="desc">报告与对话并排：与整体态势或任意一个智能体对话追问</p>
+    </a>
+    <a class="card" href="端到端/后端/静态/demo/">
+      <div class="no">05</div>
+      <div class="name">五步流程总览</div>
+      <p class="desc">从采集输入到报告输出的完整工作流</p>
+    </a>
+    <a class="card" href="端到端/后端/静态/demo/standalone.html">
+      <div class="no">06</div>
+      <div class="name">单文件完整版</div>
+      <p class="desc">五步流程打包成一个 HTML，双击即开，方便离线演示</p>
+    </a>
+  </div>
+
+  <footer>
+    学科竞赛命题 6 参赛作品 · 全国决赛一等奖 ｜ 本页零外链、零依赖，可离线打开。
+  </footer>
+</div>
+</body>
+</html>
